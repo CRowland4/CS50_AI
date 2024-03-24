@@ -54,11 +54,42 @@ def result(board: list[list], action: tuple[int]) -> list[list]:
     return new_board
 
 
-def winner(board):
+def winner(board: list[list]) -> None | str:
     """
     Returns the winner of the game, if there is one.
     """
-    raise NotImplementedError
+    x_winner = {X}
+    o_winner = {O}
+
+    # Check for horizontal winners
+    if any(set(row) == x_winner for row in board):
+        return X
+    if any(set(row) == o_winner for row in board):
+        return O
+
+    # Check for vertical winners
+    first_column = (board[0][0], board[1][0], board[2][0])
+    second_column = (board[0][1], board[1][1], board[2][1])
+    third_column = (board[0][2], board[1][2], board[2][2])
+    columns = (first_column, second_column, third_column)
+    if any(set(column) == x_winner for column in columns):
+        return X
+    if any(set(column) == o_winner for column in columns):
+        return O
+
+    # Check for diagonal winners
+    main_diagonal = (board[0][0], board[1][1], board[2][2])
+    anti_diagonal = (board[0][2], board[1][1], board[2][0])
+    if set(main_diagonal) == x_winner:
+        return X
+    if set(main_diagonal) == o_winner:
+        return O
+    if set(anti_diagonal) == x_winner:
+        return X
+    if set(anti_diagonal) == o_winner:
+        return O
+
+    return None
 
 
 def terminal(board):
