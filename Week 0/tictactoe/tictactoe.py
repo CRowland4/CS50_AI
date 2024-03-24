@@ -20,10 +20,10 @@ def initial_state():
 
 def player(board):
     """
-    Returns player who has the next turn on a board.
+    Returns player who has the next turn on a board. Assumes X goes first, so if there are an even number of Xs on the
+    board, returns O, otherwise returns X.
     """
-    raise NotImplementedError
-
+    return X if sum([board[i].count(X) for i in range(3)]) % 2 == 0 else O
 
 def actions(board):
     """
