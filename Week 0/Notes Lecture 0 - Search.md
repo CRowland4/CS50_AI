@@ -20,7 +20,7 @@
 - **node**: a data structure that keeps track of
   - a state
   - a parent (node that generated this node)
-  - an action (action applied to parent to get node)
+  - an action (action applied to parent node's state to get this node)
   - a path cost (from initial state to node)
 - **frontier**: a data structure that represents all the things that we could explore next that have yet to be visited
 - **uninformed searches**: search strategy that uses no problem-specific knowledge
@@ -43,7 +43,7 @@
 
 ## Search Algorithm Approach
 
-* start with a frontier (which implements a stack) that contains the initial state
+* start with a frontier that contains the initial state(s)
 * repeat:
   * if the frontier is empty, then no solution
   * remove a node from the frontier
@@ -54,9 +54,9 @@ There's a potential issue with this approach - if I can go from A -> B, but also
 
 
 
-## Revised Search Algorithm Approach (depth-first)
+## Revised Search Algorithm Approach
 
-- start with a frontier that contains the initial state
+- start with a frontier that contains the initial state(s)
 - start with an empty explored set
 - Repeat:
   - if the frontier is empty, then no solution
