@@ -18,7 +18,7 @@ def initial_state():
             [EMPTY, EMPTY, EMPTY]]
 
 
-def player(board):
+def player(board) -> str:
     """
     Returns player who has the next turn on a board. Assumes X goes first, so if there are an even number of Xs on the
     board, returns O, otherwise returns X.
@@ -26,24 +26,30 @@ def player(board):
     return X if sum([board[i].count(X) for i in range(3)]) % 2 == 0 else O
 
 
-def actions(board):
+def actions(board: list[list]) -> set[tuple]:
     """
     Returns set of all possible actions (i, j) available on the board.
     """
     moves = set()
     for r, row in enumerate(board):
-        for c, col in enumerate(row):
-            if col != EMPTY:
+        for c, column in enumerate(row):
+            if column != EMPTY:
                 moves.add((r, c))
 
     return moves
 
 
-def result(board, action):
+def result(board: list[list], action: tuple[int]) -> list[list]:
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    raise NotImplementedError
+    row = action[0]
+    column = action[1]
+    if board[row][column] != EMPTY:
+        raise Exception(f"Invalid move - position {row}, {column} already occupied with {board[row][column]}")
+
+    board[row][column] = player(board)
+    return board
 
 
 def winner(board):
