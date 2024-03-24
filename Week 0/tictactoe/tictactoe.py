@@ -92,11 +92,18 @@ def winner(board: list[list]) -> None | str:
     return None
 
 
-def terminal(board):
+def terminal(board: list[list]):
     """
     Returns True if game is over, False otherwise.
     """
-    raise NotImplementedError
+    if winner(board):
+        return True
+
+    all_board_moves = [board[i][j] for i in range(len(board)) for j in range(len(board[0]))]
+    if EMPTY not in all_board_moves:
+        return True
+
+    return False
 
 
 def utility(board):
