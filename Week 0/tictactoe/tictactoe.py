@@ -3,6 +3,7 @@ Tic Tac Toe Player
 """
 
 import math
+import copy
 
 X = "X"
 O = "O"
@@ -48,8 +49,9 @@ def result(board: list[list], action: tuple[int]) -> list[list]:
     if board[row][column] != EMPTY:
         raise Exception(f"Invalid move - position {row}, {column} already occupied with {board[row][column]}")
 
-    board[row][column] = player(board)
-    return board
+    new_board = copy.deepcopy(board)
+    new_board[row][column] = player(new_board)
+    return new_board
 
 
 def winner(board):
