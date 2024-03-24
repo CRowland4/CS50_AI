@@ -25,11 +25,18 @@ def player(board):
     """
     return X if sum([board[i].count(X) for i in range(3)]) % 2 == 0 else O
 
+
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    raise NotImplementedError
+    moves = set()
+    for r, row in enumerate(board):
+        for c, col in enumerate(row):
+            if col != EMPTY:
+                moves.add((r, c))
+
+    return moves
 
 
 def result(board, action):
