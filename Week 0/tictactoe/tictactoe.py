@@ -44,10 +44,14 @@ def result(board: list[list], action: tuple[int, int]) -> list[list]:
     """
     Returns the board that results from making move (i, j) on the board.
     """
+    valid_cells = (0, 1, 2)
+
     row = action[0]
     column = action[1]
     if board[row][column] != EMPTY:
         raise Exception(f"Invalid move - position {row}, {column} already occupied with {board[row][column]}")
+    if not (action[0] in valid_cells and action[1] in valid_cells):
+        raise Exception(f"Invalid move - position {row}, {column} is out of bounds.")
 
     new_board = copy.deepcopy(board)
     new_board[row][column] = player(new_board)
