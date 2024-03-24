@@ -21,10 +21,10 @@ def initial_state():
 
 def player(board) -> str:
     """
-    Returns player who has the next turn on a board. Assumes X goes first, so if there are an even number of Xs on the
-    board, returns O, otherwise returns X.
+    Returns player who has the next turn on a board. Assumes X goes first, so if there's an odd number of empty spaces
+    it's X's turn, otherwise it's O's turn.
     """
-    return X if sum([board[i].count(X) for i in range(3)]) % 2 == 0 else O
+    return O if sum([board[i].count(EMPTY) for i in range(3)]) % 2 == 0 else X
 
 
 def actions(board: list[list]) -> set[tuple[int, int]]:
@@ -34,7 +34,7 @@ def actions(board: list[list]) -> set[tuple[int, int]]:
     moves = set()
     for r, row in enumerate(board):
         for c, column in enumerate(row):
-            if column != EMPTY:
+            if column == EMPTY:
                 moves.add((r, c))
 
     return moves
