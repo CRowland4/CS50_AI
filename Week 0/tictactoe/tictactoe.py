@@ -27,7 +27,7 @@ def player(board) -> str:
     return X if sum([board[i].count(X) for i in range(3)]) % 2 == 0 else O
 
 
-def actions(board: list[list]) -> set[tuple]:
+def actions(board: list[list]) -> set[tuple[int, int]]:
     """
     Returns set of all possible actions (i, j) available on the board.
     """
@@ -40,7 +40,7 @@ def actions(board: list[list]) -> set[tuple]:
     return moves
 
 
-def result(board: list[list], action: tuple[int]) -> list[list]:
+def result(board: list[list], action: tuple[int, int]) -> list[list]:
     """
     Returns the board that results from making move (i, j) on the board.
     """
@@ -119,8 +119,37 @@ def utility(board: list[list]) -> int:
     return 0
 
 
-def minimax(board):
+def minimax(board: list[list]) -> None | tuple[int, int]:
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    if terminal(board):
+        return None
+
+    moves = actions(board)
+    if player(board) == X:
+        return max([(action, min_value(result(board, action))) for action in moves], key=lambda x: x[1])[0]
+
+    return min([(action, max_value(result(board, action))) for action in moves], key=lambda x: x[1])[0]
+
+
+def max_value(board: list[list]) -> int:
+    if terminal(board):
+        return utility(board)
+
+    value = float("-inf")
+    for action in actions(board):
+        value = max(value, min_value(result(board, action)))
+
+    return value
+
+
+def min_value(board: list[list]) -> int:
+    if terminal(board):
+        return utility(board)
+
+    value = float("inf")
+    for action in actions(board):
+        value = min(value, max_value(result(board, action)))
+
+    return value
