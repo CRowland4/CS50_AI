@@ -50,6 +50,7 @@ class Minesweeper:
 
     def is_mine(self, cell):
         i, j = cell
+        print(i, j)
         return self.board[i][j]
 
     def nearby_mines(self, cell):
@@ -151,6 +152,7 @@ class MinesweeperAI:
         # Set initial height and width
         self.height = height
         self.width = width
+        self.all_cells = {(i, j) for i in range(height) for j in range(width)}
 
         # Keep track of which cells have been clicked on
         self.moves_made = set()
@@ -212,20 +214,22 @@ class MinesweeperAI:
             changes_made = False
 
             # Mark cells as mines if that cell is in a Sentence where all cells are mines
-            for sentence in self.knowledge:
-                if sentence.known_mines == sentence.cells:
-                    map(self.mark_mine, sentence.cells)
+            for sentence in copy.deepcopy(self.knowledge):
+                if sentence.known_mines() == sentence.cells:
+                    for cell in copy.deepcopy(sentence.cells):
+                        self.mark_mine(cell)
                     changes_made = True
 
             # Mark cells as safe if new inferences can be reached based on the previous action of marking mines
-            for sentence in self.knowledge:
-                if sentence.known_safes == sentence.cells:
-                    map(self.mark_safe, sentence.cells)
+            for sentence in copy.deepcopy(self.knowledge):
+                if sentence.cells and (sentence.known_safes() == sentence.cells):
+                    for cell in copy.deepcopy(sentence.cells):
+                        self.mark_safe(cell)
                     changes_made = True
 
             # Try to create new sentences using the subset rule
-            for sentence in self.knowledge:
-                if self._create_new_subset_sentence(sentence):
+            for sentence in copy.deepcopy(self.knowledge):
+                if sentence.cells and self._create_new_subset_sentence(sentence):
                     changes_made = True
 
             # Remove empty knowledge sentences created as a result of marking safe and mine cells above
@@ -238,7 +242,7 @@ class MinesweeperAI:
          were created, and false otherwise."""
         sets_created = False
         for sentence2 in self.knowledge:
-            if sentence1.cells.issubset(sentence2.cells) and (sentence1 != sentence2):
+            if sentence2 and sentence1.cells.issubset(sentence2.cells) and (sentence1 != sentence2):
                 new_sentence = Sentence(sentence2.cells.difference(sentence1.cells), sentence2.count - sentence1.count)
                 self.knowledge.append(new_sentence)
                 sets_created = True
@@ -246,13 +250,9 @@ class MinesweeperAI:
         return sets_created
 
     def _remove_empty_sentences_from_knowledge(self) -> None:
-        empty_sentences = set()
-        for sentence in self.knowledge:
-            if len(sentence.cells) == 0:
-                empty_sentences.add(sentence)
-
-        for sentence in empty_sentences:
-            self.knowledge.remove(sentence)
+        for sentence in copy.deepcopy(self.knowledge):
+            if not sentence.cells:
+                self.knowledge.remove(sentence)
 
         return
 
@@ -278,7 +278,7 @@ class MinesweeperAI:
         for i in range(-1, 2):
             for j in range(-1, 2):
                 new_cell = (cell[0] + i, cell[1] + j)
-                if self._is_cell_in_game_boundaries(cell):
+                if self._is_cell_in_game_boundaries(new_cell):
                     neighboring_cells.add(new_cell)
 
         return neighboring_cells
@@ -288,7 +288,7 @@ class MinesweeperAI:
         column = cell[1]
         return (0 <= row <= self.height) and (0 <= column <= self.width)
 
-    def make_safe_move(self):
+    def make_safe_move(self) -> None | tuple[int, int]:
         """
         Returns a safe cell to choose on the Minesweeper board.
         The move must be known to be safe, and not already a move
@@ -297,13 +297,19 @@ class MinesweeperAI:
         This function may use the knowledge in self.mines, self.safes
         and self.moves_made, but should not modify any of those values.
         """
-        raise NotImplementedError
+        available_moves = list(self.safes.difference(self.moves_made))
+        if available_moves:
+            return available_moves[0]
 
-    def make_random_move(self):
+        return None
+
+    def make_random_move(self) -> None | tuple[int, int]:
         """
         Returns a move to make on the Minesweeper board.
         Should choose randomly among cells that:
             1) have not already been chosen, and
             2) are not known to be mines
         """
-        raise NotImplementedError
+        already_chosen_or_mines = self.moves_made.union(self.mines)
+        available_moves = list(self.all_cells.difference(already_chosen_or_mines))
+        return random.choice(available_moves) if available_moves else None
