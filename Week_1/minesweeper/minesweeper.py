@@ -1,5 +1,5 @@
-import itertools
 import random
+import copy
 
 
 class Minesweeper:
@@ -162,7 +162,7 @@ class MinesweeperAI:
         # List of sentences about the game known to be true
         self.knowledge = []
 
-    def mark_mine(self, cell):
+    def mark_mine(self, cell: tuple[int, int]) -> None:
         """
         Marks a cell as a mine, and updates all knowledge
         to mark that cell as a mine as well.
@@ -171,7 +171,9 @@ class MinesweeperAI:
         for sentence in self.knowledge:
             sentence.mark_mine(cell)
 
-    def mark_safe(self, cell):
+        return
+
+    def mark_safe(self, cell: tuple[int, int]) -> None:
         """
         Marks a cell as safe, and updates all knowledge
         to mark that cell as safe as well.
@@ -180,7 +182,9 @@ class MinesweeperAI:
         for sentence in self.knowledge:
             sentence.mark_safe(cell)
 
-    def add_knowledge(self, cell, count):
+        return
+
+    def add_knowledge(self, cell: tuple[int, int], count: int) -> None:
         """
         Called when the Minesweeper board tells us, for a given
         safe cell, how many neighboring cells have mines in them.
@@ -195,7 +199,94 @@ class MinesweeperAI:
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
-        raise NotImplementedError
+        self.moves_made.add(cell)
+        self.mark_safe(cell)
+        self._add_new_sentence_to_knowledge(cell, count)
+        self._update_knowledge()
+
+        return
+
+    def _update_knowledge(self) -> None:
+        changes_made = True
+        while changes_made:
+            changes_made = False
+
+            # Mark cells as mines if that cell is in a Sentence where all cells are mines
+            for sentence in self.knowledge:
+                if sentence.known_mines == sentence.cells:
+                    map(self.mark_mine, sentence.cells)
+                    changes_made = True
+
+            # Mark cells as safe if new inferences can be reached based on the previous action of marking mines
+            for sentence in self.knowledge:
+                if sentence.known_safes == sentence.cells:
+                    map(self.mark_safe, sentence.cells)
+                    changes_made = True
+
+            # Try to create new sentences using the subset rule
+            for sentence in self.knowledge:
+                if self._create_new_subset_sentence(sentence):
+                    changes_made = True
+
+            # Remove empty knowledge sentences created as a result of marking safe and mine cells above
+            self._remove_empty_sentences_from_knowledge()
+
+        return
+
+    def _create_new_subset_sentence(self, sentence1: Sentence) -> bool:
+        """Tries to add new Sentences to self.knowledge based on the subset inference. Returns True if any new sentences
+         were created, and false otherwise."""
+        sets_created = False
+        for sentence2 in self.knowledge:
+            if sentence1.cells.issubset(sentence2.cells) and (sentence1 != sentence2):
+                new_sentence = Sentence(sentence2.cells.difference(sentence1.cells), sentence2.count - sentence1.count)
+                self.knowledge.append(new_sentence)
+                sets_created = True
+
+        return sets_created
+
+    def _remove_empty_sentences_from_knowledge(self) -> None:
+        empty_sentences = set()
+        for sentence in self.knowledge:
+            if len(sentence.cells) == 0:
+                empty_sentences.add(sentence)
+
+        for sentence in empty_sentences:
+            self.knowledge.remove(sentence)
+
+        return
+
+    def _add_new_sentence_to_knowledge(self, cell: tuple[int, int], count: int) -> None:
+        """Creates a new Sentence to <self.knowledge> from the given <cell> and the <count> of adjacent cells that are
+        mines. Takes into account the possibility that an adjacent mine may already be known, adjusts the count
+        accordingly, and doesn't include that mine cell in the resulting Sentence."""
+        new_cells = set()
+        for neighbor_cell in self._get_neighbors(cell):
+            if neighbor_cell in self.mines:
+                count -= 1
+            elif neighbor_cell in self.safes:
+                continue
+            else:
+                new_cells.add(neighbor_cell)
+
+        self.knowledge.append(Sentence(new_cells, count))
+        return
+
+    def _get_neighbors(self, cell: tuple[int, int]) -> set[tuple[int, int]]:
+        """Returns all adjacent cell to given cell that are within the boundaries of the game's minefield"""
+        neighboring_cells = set()
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                new_cell = (cell[0] + i, cell[1] + j)
+                if self._is_cell_in_game_boundaries(cell):
+                    neighboring_cells.add(new_cell)
+
+        return neighboring_cells
+
+    def _is_cell_in_game_boundaries(self, cell: tuple[int, int]) -> bool:
+        row = cell[0]
+        column = cell[1]
+        return (0 <= row <= self.height) and (0 <= column <= self.width)
 
     def make_safe_move(self):
         """
