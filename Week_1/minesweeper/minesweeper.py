@@ -151,7 +151,6 @@ class MinesweeperAI:
         # Set initial height and width
         self.height = height
         self.width = width
-        self.all_cells = {(i, j) for i in range(height) for j in range(width)}
 
         # Keep track of which cells have been clicked on
         self.moves_made = set()
@@ -162,6 +161,10 @@ class MinesweeperAI:
 
         # List of sentences about the game known to be true
         self.knowledge = []
+
+        # My additions
+        self.all_cells = {(i, j) for i in range(height) for j in range(width)}
+        self.subsets_pairs_used = []
 
     def mark_mine(self, cell: tuple[int, int]) -> None:
         """
@@ -241,9 +244,12 @@ class MinesweeperAI:
          were created, and false otherwise."""
         sets_created = False
         for sentence2 in self.knowledge:
+            if (sentence1, sentence2) in self.subsets_pairs_used:
+                continue
+
             if sentence2 and sentence1.cells.issubset(sentence2.cells) and (sentence1 != sentence2):
+                self.subsets_pairs_used.append((sentence1, sentence2))
                 new_sentence = Sentence(sentence2.cells.difference(sentence1.cells), sentence2.count - sentence1.count)
-                print(f"\nNew Subset sentence:\n{sentence1}\n{sentence2}\n{new_sentence}\n")
                 self.knowledge.append(new_sentence)
                 sets_created = True
 
@@ -271,7 +277,6 @@ class MinesweeperAI:
 
         new_sentence = Sentence(new_cells, count)
         if new_sentence.cells:
-            print(f"New Sentence: {new_sentence}")
             self.knowledge.append(new_sentence)
         return
 
