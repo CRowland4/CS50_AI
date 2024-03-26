@@ -114,17 +114,21 @@ class Sentence:
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        if self.count == 0:
+        if self.count == 0:  # TODO should there be more calculations here?
             return self.cells
 
         return set()
 
-    def mark_mine(self, cell):
+    def mark_mine(self, cell) -> None:
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be a mine.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
+            self.count -= 1
+
+        return
 
     def mark_safe(self, cell):
         """
