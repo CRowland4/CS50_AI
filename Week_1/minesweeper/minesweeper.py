@@ -50,7 +50,6 @@ class Minesweeper:
 
     def is_mine(self, cell):
         i, j = cell
-        print(i, j)
         return self.board[i][j]
 
     def nearby_mines(self, cell):
@@ -244,6 +243,7 @@ class MinesweeperAI:
         for sentence2 in self.knowledge:
             if sentence2 and sentence1.cells.issubset(sentence2.cells) and (sentence1 != sentence2):
                 new_sentence = Sentence(sentence2.cells.difference(sentence1.cells), sentence2.count - sentence1.count)
+                print(f"\nNew Subset sentence:\n{sentence1}\n{sentence2}\n{new_sentence}\n")
                 self.knowledge.append(new_sentence)
                 sets_created = True
 
@@ -269,7 +269,10 @@ class MinesweeperAI:
             else:
                 new_cells.add(neighbor_cell)
 
-        self.knowledge.append(Sentence(new_cells, count))
+        new_sentence = Sentence(new_cells, count)
+        if new_sentence.cells:
+            print(f"New Sentence: {new_sentence}")
+            self.knowledge.append(new_sentence)
         return
 
     def _get_neighbors(self, cell: tuple[int, int]) -> set[tuple[int, int]]:
@@ -286,7 +289,7 @@ class MinesweeperAI:
     def _is_cell_in_game_boundaries(self, cell: tuple[int, int]) -> bool:
         row = cell[0]
         column = cell[1]
-        return (0 <= row <= self.height) and (0 <= column <= self.width)
+        return (0 <= row < self.height) and (0 <= column < self.width)
 
     def make_safe_move(self) -> None | tuple[int, int]:
         """
