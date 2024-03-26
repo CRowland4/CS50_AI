@@ -130,12 +130,15 @@ class Sentence:
 
         return
 
-    def mark_safe(self, cell):
+    def mark_safe(self, cell) -> None:
         """
         Updates internal knowledge representation given the fact that
         a cell is known to be safe.
         """
-        raise NotImplementedError
+        if cell in self.cells:
+            self.cells.remove(cell)
+
+        return
 
 
 class MinesweeperAI:
