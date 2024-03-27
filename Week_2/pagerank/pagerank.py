@@ -108,7 +108,26 @@ def iterate_pagerank(corpus: dict[str, set], damping_factor: float) -> dict[str,
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    num_total_pages = len(corpus)
+    result = {page: 1 / num_total_pages for page in corpus}
+
+    while True:
+        new_result = {}
+        for page_p in corpus:
+            sum_prob_p_chosen_from_i = 0
+            for page_i in corpus:
+                if not corpus[page_i]:
+                    sum_prob_p_chosen_from_i += result[page_i] / num_total_pages
+                elif page_p in corpus[page_i]:
+                    sum_prob_p_chosen_from_i += result[page_i] / len(corpus[page_i])
+
+            new_page_rank = ((1 - damping_factor) / num_total_pages) + (damping_factor * sum_prob_p_chosen_from_i)
+            new_result[page_p] = new_page_rank
+
+        if all(abs(result[page] - new_result[page]) < .001 for page in corpus):
+            return new_result
+        else:
+            result = new_result
 
 
 if __name__ == "__main__":
