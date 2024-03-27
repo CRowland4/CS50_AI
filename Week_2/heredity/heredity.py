@@ -40,11 +40,10 @@ PROBS = {
 def main():
 
     # Check for proper usage
-    # if len(sys.argv) != 2:  # TODO uncomment
-    #     sys.exit("Usage: python heredity.py data.csv")
-    # people = load_data(sys.argv[1])
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python heredity.py data.csv")
+    people = load_data(sys.argv[1])
 
-    people = load_data("data/family1.csv")  # TODO comment out
     # Keep track of gene and trait probabilities for each person
     probabilities = {
         person: {
@@ -146,10 +145,6 @@ def joint_probability(people: dict[str, dict], one_gene: set[str], two_genes: se
     prob_3 = probability_zero_gene_people(people, one_gene, two_genes)
     prob_4 = probability_has_trait_people(one_gene, two_genes, have_trait)
     prob_5 = probability_not_has_trait_people(one_gene, two_genes, set(people.keys()).difference(have_trait))
-
-
-    # First joint probability distribution for family1.csv: 1.3470359924494777e-09
-    #  Should have gotten between: [0.007987000000000001, 0.008187]
 
     joint_prob = prob_5 * prob_4 * prob_3 * prob_2 * prob_1
     return joint_prob
