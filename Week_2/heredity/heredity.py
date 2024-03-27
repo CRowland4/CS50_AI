@@ -40,11 +40,11 @@ PROBS = {
 def main():
 
     # Check for proper usage
-    # if len(sys.argv) != 2:
+    # if len(sys.argv) != 2:  # TODO uncomment
     #     sys.exit("Usage: python heredity.py data.csv")
     # people = load_data(sys.argv[1])
 
-    people = load_data("data/family0.csv")
+    people = load_data("data/family1.csv")  # TODO comment out
     # Keep track of gene and trait probabilities for each person
     probabilities = {
         person: {
@@ -80,6 +80,7 @@ def main():
 
                 # Update probabilities with new joint probability
                 p = joint_probability(people, one_gene, two_genes, have_trait)
+                print(p)
                 update(probabilities, one_gene, two_genes, have_trait, p)
 
     # Ensure probabilities sum to 1
@@ -140,14 +141,17 @@ def joint_probability(people: dict[str, dict], one_gene: set[str], two_genes: se
         4. everyone in set `have_trait` has the trait, and
         5. everyone not in set` have_trait` does not have the trait.
     """
-    joint_prob = 1
+    prob_1 = probability_one_gene_people(people, one_gene, two_genes)
+    prob_2 = probability_two_gene_people(people, one_gene, two_genes)
+    prob_3 = probability_zero_gene_people(people, one_gene, two_genes)
+    prob_4 = probability_has_trait_people(one_gene, two_genes, have_trait)
+    prob_5 = probability_not_has_trait_people(one_gene, two_genes, set(people.keys()).difference(have_trait))
 
-    joint_prob *= probability_one_gene_people(people, one_gene, two_genes)
-    joint_prob *= probability_two_gene_people(people, one_gene, two_genes)
-    joint_prob *= probability_zero_gene_people(people, one_gene, two_genes)
-    joint_prob *= probability_has_trait_people(one_gene, two_genes, have_trait)
-    joint_prob *= probability_not_has_trait_people(one_gene, two_genes, set(people.keys()).difference(have_trait))
 
+    # First joint probability distribution for family1.csv: 1.3470359924494777e-09
+    #  Should have gotten between: [0.007987000000000001, 0.008187]
+
+    joint_prob = prob_5 * prob_4 * prob_3 * prob_2 * prob_1
     return joint_prob
 
 
@@ -155,11 +159,11 @@ def probability_not_has_trait_people(one_gene: set[str], two_gene: set[str], doe
     result = 1
     for person in does_not_have_trait:
         if person in one_gene:
-            result *= PROBS["trait"][1][False]
+            result = result * PROBS["trait"][1][False]  # Works
         elif person in two_gene:
-            result *= PROBS["trait"][2][False]
+            result = result * PROBS["trait"][2][False]
         else:
-            result *= PROBS["trait"][0][False]
+            result = result * PROBS["trait"][0][False]  # Works
 
     return result
 
@@ -168,11 +172,11 @@ def probability_has_trait_people(one_gene: set[str], two_gene: set[str], have_tr
     result = 1
     for person in have_trait:
         if person in one_gene:
-            result *= PROBS["trait"][1][True]
+            result = result * PROBS["trait"][1][True]
         elif person in two_gene:
-            result *= PROBS["trait"][2][True]
+            result = result * PROBS["trait"][2][True]  # Works
         else:
-            result *= PROBS["trait"][0][True]
+            result = result * PROBS["trait"][0][True]
 
     return result
 
@@ -183,11 +187,11 @@ def probability_zero_gene_people(people: dict[str, dict], one_gene: set[str], tw
     result = 1
     for person in zero_genes:
         if not people[person]["mother"] and not people[person]["father"]:
-            result *= PROBS["gene"][0]
+            result = result * PROBS["gene"][0]  # Works
         else:
             mother_gene_count = get_parent_gene_count(people[person]["mother"], one_gene, two_genes)
             father_gene_count = get_parent_gene_count(people[person]["father"], one_gene, two_genes)
-            result *= probability_child_has_gene(mother_gene_count, father_gene_count)
+            result = result * probability_child_has_zero_gene(mother_gene_count, father_gene_count)
 
     return result
 
@@ -196,11 +200,11 @@ def probability_two_gene_people(people: dict[str, dict], one_gene: set[str], two
     result = 1
     for person in two_genes:
         if not people[person]["mother"] and not people[person]["father"]:
-            result *= PROBS["gene"][2]
+            result = result * PROBS["gene"][2]  # Works
         else:
             mother_gene_count = get_parent_gene_count(people[person]["mother"], one_gene, two_genes)
             father_gene_count = get_parent_gene_count(people[person]["father"], one_gene, two_genes)
-            result *= probability_child_has_gene(mother_gene_count, father_gene_count)
+            result = result * probability_child_has_two_gene(mother_gene_count, father_gene_count)
 
     return result
 
@@ -209,29 +213,43 @@ def probability_one_gene_people(people: dict[str, dict], one_gene: set[str], two
     result = 1
     for person in one_gene:
         if not people[person]["mother"] and not people[person]["father"]:
-            result *= PROBS["gene"][1]
+            result = result * PROBS["gene"][1]
         else:
-            mother_gene_count = get_parent_gene_count(people[person]["mother"], one_gene, two_genes)
-            father_gene_count = get_parent_gene_count(people[person]["father"], one_gene, two_genes)
-            result *= probability_child_has_gene(mother_gene_count, father_gene_count)
+            mother_gene_count = get_parent_gene_count(people[person]["mother"], one_gene, two_genes)  # Works
+            father_gene_count = get_parent_gene_count(people[person]["father"], one_gene, two_genes)  # Works
+            result = result * probability_child_has_one_gene(mother_gene_count, father_gene_count)
 
     return result
 
 
-def probability_child_has_gene(parent_gene_count1: int, parent_gene_count2: int) -> float:
+def probability_child_has_zero_gene(parent_gene_count1: int, parent_gene_count2: int) -> float:
     has_from_parent1 = probability_child_has_gene_from_parent(parent_gene_count1)
     has_from_parent2 = probability_child_has_gene_from_parent(parent_gene_count2)
 
-    return (has_from_parent1 * (1 - has_from_parent2)) + (has_from_parent2 * (1 - has_from_parent1))
+    return (1 - has_from_parent1) * (1 - has_from_parent2)
+
+
+def probability_child_has_two_gene(parent_gene_count1: int, parent_gene_count2: int) -> float:
+    has_from_parent1 = probability_child_has_gene_from_parent(parent_gene_count1)
+    has_from_parent2 = probability_child_has_gene_from_parent(parent_gene_count2)
+
+    return has_from_parent1 * has_from_parent2
+
+
+def probability_child_has_one_gene(parent_gene_count1: int, parent_gene_count2: int) -> float:
+    has_from_parent1 = probability_child_has_gene_from_parent(parent_gene_count1)
+    has_from_parent2 = probability_child_has_gene_from_parent(parent_gene_count2)
+
+    return (has_from_parent1 * (1 - has_from_parent2)) + (has_from_parent2 * (1 - has_from_parent1))  # Works
 
 
 def probability_child_has_gene_from_parent(parent_gene_count: int) -> float:
     if parent_gene_count == 0:
-        return PROBS["mutation"]
+        return PROBS["mutation"]  # Works
     if parent_gene_count == 1:
         return .5
 
-    return 1 - PROBS["mutation"]
+    return 1 - PROBS["mutation"]  # Works
 
 
 def get_parent_gene_count(person: str, one_gene: set[str], two_genes: set[str]) -> int:
@@ -279,7 +297,7 @@ def normalize(probabilities: dict[str, dict]) -> None:
 def normalize_distribution(person: dict[str, dict], distribution: str) -> dict[str, dict]:
     alpha = 1 / sum(list(person[distribution].values()))
     for key in person[distribution].keys():
-        person[distribution][key] *= alpha
+        person[distribution][key] = person[distribution][key] * alpha
 
     return person
 
