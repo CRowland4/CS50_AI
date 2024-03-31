@@ -124,7 +124,7 @@ class CrosswordCreator:
 
         return changes_made
 
-    def ac3(self, arcs: list[Variable, Variable] = None):
+    def ac3(self, arcs: list[tuple[Variable, Variable]] = None):
         """
         Update `self.domains` such that each variable is arc consistent.
         If `arcs` is None, begin with initial list of all arcs in the problem.
@@ -133,8 +133,7 @@ class CrosswordCreator:
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        import time  # TODO delete this
-        if not arcs:
+        if arcs is None:
             arcs = []
             for var1 in self.domains:
                 for var2 in self.domains:
@@ -144,13 +143,12 @@ class CrosswordCreator:
         while arcs:
             arc = tuple(arcs.pop(0))
             x_var, y_var = arc[0], arc[1]
-            revised = self.revise(x_var, y_var)
-            if not self.domains[x_var]:
-                return False
-            if revised:
-                for var in self.domains.keys():
-                    if x_var != var:
-                        arcs.append((x_var, var))
+            if self.revise(x_var, y_var):
+                if len(self.domains[x_var]) == 0:
+                    return False
+                for var in self.crossword.neighbors(x_var):
+                    if var != y_var:
+                        arcs.append((var, x_var))
 
         return True
 
