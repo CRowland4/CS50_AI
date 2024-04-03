@@ -101,7 +101,9 @@
             - return `false`
           - for each `Z` in `X.neighbors - {Y}`
             - `enqueue(queue, (Z, X))
-        - return `true`
+      - return `true`
+  - **maintaining arc-consistency algorithm**: algorithm for enforcing arc-consistency every time we make a new assignment
+    - When we make a new assignment to `X`, calls `AC-3`, starting with a queue of all arcs `(Y, X)` where `Y` is a neighbor of `X` 
 
 
 
@@ -112,3 +114,29 @@
 - transition model: shows how adding an assignment changes the assignment
 - goal test: check if all variables assigned and constraints all satisfied
 - path cost function: all paths have same cost (kinda irrelevant in CSPs)
+
+
+
+## Backtracking Search ( a CSP algorithm)
+
+- function `backtrack(assignment, csp)`
+  - if `assignment` complete: return `assignment`
+  - `var = select-unassigned-var(assignment, csp)`
+  - for `value` in `domain-values(var, assignment, csp)`
+    - if `value` consistent with `assignment` 
+      - add `{var = value}` to `assignment`
+        - an `inference(assignment, csp)` function could be called here to enforce arc-consistency
+      - `result = backtrack(assignment, csp)`
+      - if `result` isn't a failure: return `result` 
+    - remove `{var = value}` (and `inferences`, if using inference) from `assignment` 
+  - return `failure` 
+
+### options for `select-unassigned-var` function
+
+- minimum remaining values (MRV) heuristic: select the variable that has the smallest domain
+- degree heuristic: select the variable that has the highest degree (number of nodes constrained by that particular node)
+
+	### options for `domain-values` function
+
+- **least-constraining values heuristic**: return variables in order by number of choices that are ruled out for neighboring variables
+  - try least-constraining values first
