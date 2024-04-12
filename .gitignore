@@ -163,3 +163,6 @@ token.txt
 
 # Very large image dataset for the traffic problem in Week 5
 gtsrb/
+
+# Another large group of images, from the attention problem in Week 6
+Week_6/attention/*.png
